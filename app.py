@@ -9,7 +9,7 @@ import boto3
 BUCKET_NAME = "visual-media-bucket"
 AWS_REGION = "us-east-1"
 
-s3 = boto3.client("s3")
+s3 = boto3.client("s3", aws_access_key_id=os.environ.get("AWS_ACCESS_KEY_ID"), aws_secret_access_key= os.environ.get("AWS_SECRET_ACCESS_KEY") )
 
 # Define the app
 app = Flask(__name__)
