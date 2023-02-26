@@ -1,4 +1,5 @@
 import os
+import json
 from flask import Blueprint, request, jsonify
 import boto3
 import botocore
@@ -10,17 +11,22 @@ api = Blueprint("api", __name__)
 
 # AWS S3 Bucket Connection Set Up
 s3 = boto3.client("s3", aws_access_key_id=os.environ.get("AWS_ACCESS_KEY_ID"), aws_secret_access_key=os.environ.get(
-    "AWS_SECRET_ACCESS_KEY"))  # access keys are private so they should never be available to the public
-db = boto3.client("dynamodb", aws_access_key_id=os.environ.get(
-    "AWS_ACCESS_KEY_ID"), aws_secret_access_key=os.environ.get("AWS_SECRET_ACCESS_KEY"))
-auth = boto3.client("cognito-idp", aws_access_key_id=os.environ.get("AWS_ACCESS_KEY_ID"), aws_secret_access_key=os.environ.get("AWS_SECRET_ACCESS_KEY"))
+    "AWS_SECRET_ACCESS_KEY"), region_name="us-east-1")  # access keys are private so they should never be available to the public
+db = boto3.client("dynamodb", aws_access_key_id=os.environ.get("AWS_ACCESS_KEY_ID"),
+                  aws_secret_access_key=os.environ.get("AWS_SECRET_ACCESS_KEY"), region_name="us-east-1")
+auth = boto3.client("cognito-idp", aws_access_key_id=os.environ.get("AWS_ACCESS_KEY_ID"),
+                    aws_secret_access_key=os.environ.get("AWS_SECRET_ACCESS_KEY"), region_name="us-east-1")
+ecoder = boto3.client("elastictranscoder", aws_access_key_id=os.environ.get(
+    "AWS_ACCESS_KEY_ID"), aws_secret_access_key=os.environ.get("AWS_SECRET_ACCESS_KEY"), region_name="us-east-1")
 
 # s3 methods require you to provide the bucket name every time so we store it for efficiency
 BUCKET_NAME = "visual-media-bucket"
+COMPRESS_BUCKET_NAME = "processed-media-gamingforum"
 AWS_REGION = "us-east-1"  # some methods require region to be specify
 
 
 def get_S3_object_url(bucket_name, key):
+    
     return f"https://{bucket_name}.s3.amazonaws.com/{key.replace(' ', '+')}"
 
 # Get a welcoming message once you start the server.
@@ -51,7 +57,7 @@ def get_all_objects_in_bucket():
         # NOTE the statement below is used to filter an s3 bucket for all files of type mp4, changing .mp4 with something else will filter for that other thing
         # list(filter(lambda file: file["Key"].endswith(".mp4") , response["Contents"]))
 
-        return jsonify(), 200
+        return jsonify(response), 200
 
     return jsonify(f"No objects in the bucket {BUCKET_NAME}"), 200
 
@@ -63,23 +69,27 @@ def upload_file():
     video = request.files.get("video")
     audio = request.files.get("audio")
 
+    f = open("output.json", "w")
+    f.write(str(video.content_type))
+    f.close()
+
     response = {}
 
-    if img is not None:
-        s3.upload_fileobj(img, BUCKET_NAME, img.filename,
-                          ExtraArgs={"ACL": "public-read"})
-        response["imgURL"] = get_S3_object_url(
-            AWS_REGION, BUCKET_NAME, img.filename)
-    if video is not None:
-        s3.upload_fileobj(video, BUCKET_NAME, video.filename,
-                          ExtraArgs={"ACL": "public-read"})
-        response["videoURL"] = get_S3_object_url(
-            AWS_REGION, BUCKET_NAME, video.filename)
-    if audio is not None:
-        s3.upload_fileobj(audio, BUCKET_NAME, audio.filename,
-                          ExtraArgs={"ACL": "public-read"})
-        response["audioURL"] = get_S3_object_url(
-            AWS_REGION, BUCKET_NAME, audio.filename)
+    # if img is not None:
+    #     s3.upload_fileobj(img, BUCKET_NAME, img.filename,
+    #                       ExtraArgs={"ACL": "public-read"})
+    #     response["imgURL"] = get_S3_object_url(COMPRESS_BUCKET_NAME, img.filename)
+    # if video is not None:
+    #     s3.upload_fileobj(video, BUCKET_NAME, video.filename,
+    #                       ExtraArgs={"ACL": "public-read"})
+    #     response["videoURL"] = get_S3_object_url( COMPRESS_BUCKET_NAME, video.filename)
+
+
+    #     print(response)
+    # if audio is not None:
+    #     s3.upload_fileobj(audio, BUCKET_NAME, audio.filename,
+    #                       ExtraArgs={"ACL": "public-read"})
+    #     response["audioURL"] = get_S3_object_url( COMPRESS_BUCKET_NAME, audio.filename)
 
     return jsonify(response), 200
 
@@ -220,3 +230,19 @@ def get_user_data():
     return jsonify(aws_auth_res)
 
 
+@api.route("/db/public/videos", methods=["GET"])
+def get_all_videos():
+    response = db.scan(
+        TableName="serenity_videos",
+        Limit=20,
+        Select="ALL_ATTRIBUTES"
+    )
+
+    comments = response["Items"][0]["comments"]["SS"]
+
+    # turns comment strings into proper dictionaries
+    for index, comment in enumerate(comments):
+        comments[index] = json.loads(comment)
+
+
+    return jsonify(response), 200

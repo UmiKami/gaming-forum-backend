@@ -2,7 +2,7 @@
 import os
 from flask import Flask
 from flask_cors import CORS
-from routes import api
+from src.routes import api
 
 # flask app setup
 
@@ -17,6 +17,6 @@ CORS(app, resources={r"*": {"origins": "*"}}) # prevents most CORS issues
 # If the file is run directly,start the app.
 if __name__ == '__main__':
     PORT = int(os.environ.get('PORT', 3000))
-    app.run(host='0.0.0.0', port=PORT, debug=True)
+    app.run(host='0.0.0.0', port=PORT, debug=False)
 
 # To execute, run the file. Then go to 127.0.0.1:5000 in your browser and look at a welcoming message.
