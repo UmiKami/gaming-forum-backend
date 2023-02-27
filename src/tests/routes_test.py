@@ -23,4 +23,4 @@ def test_home():
     with client:
         response = client.get('/')
         assert response.status_code == 200
-        assert response.data == b'Home sweet home! <strong> Your Yoga App! <strong>'
+        assert response.data == b'Home sweet home! <strong> Your Yoga App! | new pipeline | <strong>'
