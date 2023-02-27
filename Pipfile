@@ -5,12 +5,14 @@ name = "pypi"
 
 [scripts]
 start = "flask run -p 3001 -h 0.0.0.0"
+test = "pytest"
 
 [packages]
 flask = "*"
 boto3 = "*"
 flask-cors = "*"
 gunicorn = "*"
+pytest = "*"
 
 [dev-packages]
 
