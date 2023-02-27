@@ -34,7 +34,7 @@ def get_S3_object_url(bucket_name, key):
 
 @api.route('/')
 def home():
-    return 'Home sweet home! <strong> Your Yoga App! | new pipeline | <strong>'
+    return 'Home sweet home! <strong> Your Yoga App! | THIS IS IT | <strong>'
 
 
 @api.route("/buckets")
