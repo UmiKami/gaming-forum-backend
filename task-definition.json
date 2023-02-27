@@ -1,5 +1,5 @@
 {
-    "taskDefinitionArn": "arn:aws:ecs:us-east-1:578356772089:task-definition/sample-fargate:1",
+    "taskDefinitionArn": "arn:aws:ecs:us-east-1:578356772089:task-definition/sample-fargate:2",
     "containerDefinitions": [
         {
             "name": "serenity-api-v1-service",
@@ -7,6 +7,7 @@
             "cpu": 0,
             "portMappings": [
                 {
+                    "name": "serenity-api-v1-service-3000-tcp",
                     "containerPort": 3000,
                     "hostPort": 3000,
                     "protocol": "tcp"
@@ -26,8 +27,9 @@
         }
     ],
     "family": "sample-fargate",
+    "executionRoleArn": "arn:aws:iam::578356772089:role/TaskDefinitationEtECR",
     "networkMode": "awsvpc",
-    "revision": 1,
+    "revision": 2,
     "volumes": [],
     "status": "ACTIVE",
     "requiresAttributes": [
@@ -48,7 +50,7 @@
     ],
     "cpu": "256",
     "memory": "512",
-    "registeredAt": "2023-02-27T03:38:29.012Z",
+    "registeredAt": "2023-02-27T15:32:49.671Z",
     "registeredBy": "arn:aws:iam::578356772089:user/ernestoTechAdmin",
     "tags": []
 }
