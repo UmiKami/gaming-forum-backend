@@ -10,7 +10,7 @@ env:
   ECR_REPOSITORY: serenity_api_v1           # set this to your Amazon ECR repository name
   ECS_SERVICE: serenity-api-v1_service                # set this to your Amazon ECS service name
   ECS_CLUSTER: SerenityApiCluster_v1                # set this to your Amazon ECS cluster name
-  ECS_TASK_DEFINITION: ./sample-fargate-revision1.json # set this to the path to your Amazon ECS task definition
+  ECS_TASK_DEFINITION: task-definition.json # set this to the path to your Amazon ECS task definition
                                                # file, e.g. .aws/task-definition.json
   CONTAINER_NAME: serenity-api-v1-service           # set this to the name of the container in the
                                                # containerDefinitions section of your task definition
@@ -59,6 +59,7 @@ jobs:
             -e AWS_SECRET_ACCESS_KEY=${{ env.AWS_SECRET_ACCESS_KEY }} \
             578356772089.dkr.ecr.us-east-1.amazonaws.com/serenity_api_v1:latest python -m pytest
   deploy:
+    needs: test
     name: Deploy
     runs-on: ubuntu-latest
 
