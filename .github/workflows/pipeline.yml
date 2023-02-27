@@ -65,5 +65,7 @@ jobs:
             sudo apt-get install docker.io -y
             # Stop all docker containers before running new one
             docker kill $(docker ps -q)
+            # pull latest version of image
+            docker pull umikami/serenity_api_v1:latest
             # Start Docker container
             docker run -p 3000:3000 -d -e AWS_COGNITO_CLIENT_ID=${{ secrets.AWS_COGNITO_CLIENT_ID }} -e AWS_SECRET_ACCESS_KEY=${{ env.AWS_SECRET_ACCESS_KEY }} -e AWS_ACCESS_KEY_ID=${{ env.AWS_SECRET_ACCESS_KEY }} umikami/serenity_api_v1:latest
