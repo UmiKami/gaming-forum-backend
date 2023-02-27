@@ -53,4 +53,4 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
       - name: Deploy to ECS
         run: |
-          aws ecs update-service --cluster serenity_api_v1 --service serenity_api_v1-service --force-new-deployment
+          aws ecs update-service --cluster serenity-api-v1 --service serenity_api_v1-service --force-new-deployment
