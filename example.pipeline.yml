@@ -10,8 +10,6 @@ env:
   DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
   DOCKER_PASSWORD: ${{ secrets.DOCKER_PAT }}
   AWS_REGION: us-east-1
-  AWS_ECS_CLUSTER: my-ecs-cluster
-  AWS_ECS_SERVICE: my-ecs-service
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
@@ -43,14 +41,31 @@ jobs:
         run: docker run --rm ${{ env.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest python3 -m pytest
   deploy:
     needs: test
+    name: Deploy
     runs-on: ubuntu-latest
+
     steps:
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
         with:
-          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-      - name: Deploy to ECS
+          username: ${{ env.DOCKER_USERNAME }}
+          password: ${{ env.DOCKER_PASSWORD }}
+      - name: Pull Docker image from Docker Hub
         run: |
-          aws ecs update-service --cluster serenity-api-v1 --service serenity_api_v1-service --force-new-deployment
+          docker pull umikami/serenity_api_v1:latest
+      - name: SSH into EC2 instance and start Docker container
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          password: ${{ secrets.EC2_PASSWORD }}
+          script: |
+            # Install Docker (if not already installed)
+            sudo apt-get update
+            sudo apt-get install docker.io -y
+            # Stop all docker containers before running new one
+            docker kill $(docker ps -q)
+            # pull latest version of image
+            docker pull umikami/serenity_api_v1:latest
+            # Start Docker container
+            docker run -p 3000:3000 -d -e AWS_COGNITO_CLIENT_ID=${{ secrets.AWS_COGNITO_CLIENT_ID }} -e AWS_SECRET_ACCESS_KEY=${{ env.AWS_SECRET_ACCESS_KEY }} -e AWS_ACCESS_KEY_ID=${{ env.AWS_SECRET_ACCESS_KEY }} umikami/serenity_api_v1:latest
